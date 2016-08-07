@@ -5,6 +5,7 @@ from pandas.tools.plotting import scatter_matrix
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 import matplotlib as mpl
+import configparser  
 
 def read_csv(filename):
     with open(filename, 'rb') as f:
@@ -41,6 +42,22 @@ def parse_date(date,date_format): #requires expected date format '%Y-%m-%d'
 		return None
 	else:
 		return dt.datetime.strptime(date,date_format)
+
+def ConfigSectionMap(section):
+	Config = configparser.ConfigParser()
+	config_path = '/Users/whitesi/Documents/Programming/Python/db.ini'
+	Config.read(config_path)
+	dict1 = {}
+	options = Config.options(section)
+	for option in options:
+	    try:
+	        dict1[option] = Config.get(section, option)
+	        if dict1[option] == -1:
+	            DebugPrint("skip: %s" % option)
+	    except:
+	        print("exception on %s!" % option)
+	        dict1[option] = None
+	return dict1
 
 def convert_csv_entries(csv_list,int_fields,float_fields,date_fields): #Need to add int fields option and func
 	for entry in csv_list:

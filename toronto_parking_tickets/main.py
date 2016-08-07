@@ -7,6 +7,12 @@ import numpy as np
 import glob, os
 
 
+##IDEAS
+#1) Location based profitability
+#2) most profitable ticket types
+#3) most common time of infraction
+#4)
+
 ##GET DATA
 #GET FILES
 main_dir=os.getcwd()
@@ -58,8 +64,6 @@ def get_fine_descrp(df):
 
 tpt_grouped_df['fine_sum']=tpt_grouped_df.apply(calc_fine_sum,axis=1)
 tpt_grouped_df['fine_descrp']=tpt_grouped_df.apply(get_fine_descrp,axis=1)
-
-
 
 
 
