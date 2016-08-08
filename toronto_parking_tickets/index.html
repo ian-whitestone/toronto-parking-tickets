@@ -37,7 +37,7 @@
     <!--   center svg in div   -->
     <div class="wrapper"></div>
     <script>
-
+				// code modified from https://gist.github.com/jasonicarter/639c7f839c9c6e8c02a8eea9ac4bd1b0
         // With help from - http://bl.ocks.org/michellechandra/0b2ce4923dc9b5809922
         var mapWidth = 550,
             mapHeight = 550;
@@ -56,7 +56,8 @@
         var mapLabel = svg.append("text")
             .attr("y", 20)
             .attr("x", 0)
-            .attr("class", "map_neighbourhood_name")
+            // .attr("class", "map_neighbourhood_name")
+						.attr("class","spot_data")
 
         // load TopoJSON file
         d3.json("toronto_topo.json", function(error, toronto) {
@@ -82,7 +83,7 @@
           // get individual neighbourhoods
           svg.selectAll("path")
                 .data(neighbourhoods.features)
-              .enter().append("path")
+              	.enter().append("path")
                 .attr("class", "map_neighbourhood")
                 .attr("d", path)
                 // .on("mouseover", mouseover)
@@ -113,28 +114,59 @@
 						// console.log(data[0]);
 						// debugger;
 
-						svg.selectAll("circle")
+								svg.selectAll("circle")
 									.data(data)
 									.enter()
 									.append("circle")
+									.attr("class","spot_data") //added to display text on mouseover
 									.attr("cx", function(d) {
 										return projection([d.lng, d.lat])[0];
 									})
 									.attr("cy", function(d) {
 										return projection([d.lng, d.lat])[1];
 									})
-									.attr("r",10)
-									//  .attr("r", function(d) {
-									// 	return Math.sqrt(parseInt(d.population) * 0.00004);
-									//  })
+									 .attr("r", function(d) {
+										return Math.sqrt(parseInt(d.fine_sum) /10);
+									 })
 									.style("fill", "yellow")
-									.style("opacity", 0.75);
+									.style("opacity", 0.75)
+									.on("mouseover", mouseover)
+									.on("mouseout", mouseout)
+									.on("click", clicked);
+
+							// svg.selectAll("text")
+							//    .data(data)
+							//    .enter()
+							//    .append("text")
+							// 	 .attr("x",function(d) {
+							// 		 return projection([d.lng, d.lat])[0];
+							// 	 })
+							// 	 .attr("y",function(d) {
+							// 		 return projection([d.lng, d.lat])[1];
+							// 	 })
+							//    .text(function(d) {
+							//    		return d.location2;
+							//    })
+
 
 					});
 
         });
 
-				//
+
+				function mouseover(d) {
+          mapLabel.text(d.address+" Total fine amt: $"+d.fine_sum) //
+        }
+
+        function mouseout(d) {
+          mapLabel.text("")  // remove out name
+        }
+
+        function clicked(d) {
+          // console.log(d.properties.id, d.properties.name) // verify everything looks good
+          // Add code here
+        }
+
         // function mouseover(d) {
         //   mapLabel.text(d.properties.name.slice(0,-5)) // remove suffix id from name
         // }
@@ -151,6 +183,14 @@
     </script>
     </body>
 </html>
+
+
+
+
+
+
+
+
 
 
 
