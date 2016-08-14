@@ -62,12 +62,6 @@ def calc_fine_sum(df):
 def get_fine_descrp(df):
     return fine_amount_dict[df['infraction_code']]['fine_descp']
 
-tpt_grouped_df['fine_sum']=tpt_grouped_df.apply(calc_fine_sum,axis=1)
-tpt_grouped_df['fine_descrp']=tpt_grouped_df.apply(get_fine_descrp,axis=1)
-
-
-
-
 
 
 
