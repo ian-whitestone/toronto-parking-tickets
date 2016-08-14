@@ -16,7 +16,7 @@ import glob, os
 ##GET DATA
 #GET FILES
 main_dir=os.getcwd()
-allFiles = glob.glob(main_dir.split('/Studies')[0]+'/toronto_parking_data'+ "/*.csv")
+allFiles = glob.glob(main_dir+'/toronto_parking_data'+ "/*.csv")
 
 #LOAD TO DATAFRAME
 list_ = []
