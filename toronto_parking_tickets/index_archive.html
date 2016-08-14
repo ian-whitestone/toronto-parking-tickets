@@ -1,3 +1,10 @@
+<!--Visualization of Toronto Parking Ticket Data. Code modified from the following sources:
+    http://bl.ocks.org/mbostock/4132797
+    http://bl.ocks.org/ninjaPixel/7f244063ca7171fc9a67
+    http://bl.ocks.org/jhubley/63cf8b42e236c29241fb
+    -->
+
+
 <!DOCTYPE html>
 <meta charset="utf-8">
 <style>
@@ -24,10 +31,10 @@ body {
 	height:100%;
 }
 
-/*.map {
+.map {
   position: relative;
   overflow: hidden;
-}*/
+}
 
 .layer {
   position: absolute;
@@ -56,6 +63,8 @@ body {
   left: 10px;
 }
 
+}
+
 .d3-tip {
   line-height: 1.5;
   font-weight: bold;
@@ -68,6 +77,7 @@ body {
 	position:relative;
 	z-index:101;
 }
+
 
 /* Creates a small triangle extender for the tooltip */
 .d3-tip:after {
@@ -87,11 +97,12 @@ body {
   margin: -1px 0 0 0;
   top: 100%;
   left: 0;
+
+
 }
 
 </style>
 <body>
-
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script src="http://d3js.org/d3.geo.tile.v0.min.js"></script>
 <!-- <script src="d3.tip.js"></script> -->
@@ -101,6 +112,11 @@ body {
 var width = Math.max(960, window.innerWidth),
     height = Math.max(500, window.innerHeight),
     prefix = prefixMatch(["webkit", "ms", "Moz", "O"]);
+
+// var margin = 75,
+// 	  width = 1400 - margin,
+//     height = 800 - margin;
+//     prefix = prefixMatch(["webkit", "ms", "Moz", "O"]);
 
     d3.csv("tpt_sample.csv", function(error, dataset) { add_circles(dataset) });
 
@@ -120,7 +136,6 @@ var zoom = d3.behavior.zoom()
     }))
     .on("zoom", zoomed);
 
-
 var container = d3.select("body").append("div")
     .attr("id", "container")
     .style("width", width + "px")
@@ -130,10 +145,14 @@ var container = d3.select("body").append("div")
 
 
 var map = container.append("g")
-		.attr("id", "map");
+		.attr("id", "map")
+    // .attr("width", 400)
+    // .attr("height", 400)
+    // .attr("x", 50)
+    // .attr("y", 50)
 
 var points = container.append("svg")
-		.attr("id", "points");
+		.attr("id", "points")
 
 var layer = map.append("div")
     .attr("class", "layer");
@@ -141,6 +160,13 @@ var layer = map.append("div")
 var info = map.append("div")
     .attr("class", "info");
 
+// var title = container.append("foreignObject")
+//     .append("xhtml:div")
+//     .attr("class", "title")
+//     .style("position", "absolute")
+//     .style("left", width/2 - 300 + "px")
+//     .style("top", 0 + "px")
+//     .html('<h1>Toronto Parking Tickets From 2008 to 2015</h1>');
 
 var tip = d3.tip()
   .attr('class', 'd3-tip')
@@ -149,10 +175,15 @@ var tip = d3.tip()
     return "<span>" + d.location2 + "</span>" + "<br />" + "<span>" +
               "Fine Sum: $" + d.fine_sum + "</span>";
     // return "<span style='color:black'>" + d.location2 + "</span>";
-  });
+  })
 
+// var tip = d3.tip()
+//   	.attr('class', 'd3-tip')
+// 		.offset([-10, 0])
+// 		.html(function(d) { return d.location2; })
 
 points.call(tip);
+
 
 zoomed();
 
@@ -169,8 +200,8 @@ function add_circles(dataset) {
   zoomed();
 }
 
-function zoomed() {
 
+function zoomed() {
   var tiles = tile
       .scale(zoom.scale())
       .translate(zoom.translate())
@@ -187,7 +218,7 @@ function zoomed() {
 
   var image = layer
       .style(prefix + "transform", matrix3d(tiles.scale, tiles.translate))
-    .selectAll(".tile")
+      .selectAll(".tile")
       .data(tiles, function(d) { return d; });
 
   image.exit()
