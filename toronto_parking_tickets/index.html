@@ -103,7 +103,16 @@ var margin = 75,
     height = 800 - margin;
     prefix = prefixMatch(["webkit", "ms", "Moz", "O"]);
 
-    d3.csv("tpt_sample.csv", function(error, dataset) { add_circles(dataset) });
+
+// http://stackoverflow.com/questions/9491885/csv-to-array-in-d3-js
+
+d3.csv("top_hydrants.csv", function(error, dataset)
+      {
+        data=dataset.filter(function(d) {
+                return d.year == 2014;}) //eventually need this to be reactive based on transition/user selection
+        add_circles(data)
+      });
+
 
 var tile = d3.geo.tile()
     .size([width, height]);
@@ -157,14 +166,12 @@ var tip = d3.tip()
   .attr('class', 'd3-tip')
   .offset([-10, 0])
   .html(function(d) {
-    return "<span>" + d.location2 + "</span>" + "<br />" + "<span>" +
+    return "<span>" + d.street_address + "</span>" + "<br />" + "<span>" +
               "Fine Sum: $" + d.fine_sum + "</span>";
-    // return "<span style='color:black'>" + d.location2 + "</span>";
+    // return "<span style='color:black'>" + d.street_address + "</span>";
   });
 
-
 points.call(tip);
-
 zoomed();
 
 function add_circles(dataset) {
@@ -194,7 +201,7 @@ function zoomed() {
   var circles = d3.selectAll("circle")
         .attr("cx", function(d) {return projection([d.lng,d.lat])[0]})
 				.attr("cy", function(d) {return projection([d.lng,d.lat])[1]})
-				.attr("r", function(d) {return 0.000000012*d.fine_sum*zoom.scale()} );
+				.attr("r", function(d) {return 0.00000000012*d.fine_sum*zoom.scale()} );
 
   var image = layer
       .style(prefix + "transform", matrix3d(tiles.scale, tiles.translate))

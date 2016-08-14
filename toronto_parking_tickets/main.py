@@ -64,18 +64,5 @@ def get_fine_descrp(df):
 
 
 
-final_df['lat']=final_df['street_address'].map(lambda x: locations_1_dict[x][0])
-
-final_df['lng']=final_df['street_address'].map(lambda x: locations_1_dict[x][1])
-final_df['full_address']=final_df['street_address'].map(lambda x: locations_1_dict[x][2])
-final_df['fine_amt']=final_df['infraction_code'].map(lambda x: fine_amount_dict[x]['fine_amt'])
-
-final_df_2['lat']=locations_2_dict[final_df_2['street_address']][0]
-final_df_2['lng']=locations_2_dict[final_df_2['street_address']][1]
-final_df_2['full_address']=locations_2_dict[final_df_2['street_address']][2]
-final_df_2['fine_amt']=fine_amount_dict[final_df_2['infraction_code']]['fine_amt']
-
-
-
 
 ##
