@@ -53,6 +53,8 @@ body {
 
 
 //code modified from http://bl.ocks.org/mbostock/4132797 and http://bl.ocks.org/ninjaPixel/7f244063ca7171fc9a67
+//          and from http://bl.ocks.org/jhubley/63cf8b42e236c29241fb
+
 //temp
 var p=2;
 
@@ -103,17 +105,16 @@ var layer = map.append("div")
 var info = map.append("div")
     .attr("class", "info");
 
-make_circle([5]);
+d3.csv("tpt_sample.csv", function(error, dataset) { add_circles(dataset) });
 
-function make_circle(data) {
-  d3.select("#points").selectAll("circle").data(data) //plotted 	locations on map
+function add_circles(dataset) {
+  d3.select("#points").selectAll("circle").data(dataset) //plotted 	locations on map
   	.enter()
   	.append("circle")
     // .attr("cx",292096)
     // .attr("cy",382208)
-    .attr("cx", function(d) {return projection([-79.38558, 43.65228])[0]})
-  	.attr("cy", function(d) {return projection([-79.38558, 43.65228])[1]})
-  	.attr("class", "coffee")
+    .attr("cx", function(d) {return projection([d.lng, d.lat])[0]})
+  	.attr("cy", function(d) {return projection([d.lng, d.lat])[1]})
     .attr("r", 1000)
     .style("fill", "black")
     .style("opacity", 0.75)
@@ -132,9 +133,9 @@ function zoomed() {
       .translate(zoom.translate());
 
   var circles = d3.selectAll("circle")
-  			.attr("cx", function(d) {return projection([-79.38558, 43.65228])[0]})
-  			.attr("cy", function(d) {return projection([-79.38558, 43.65228])[1]})
-  			.attr("r", .0000012*zoom.scale());
+        .attr("cx", function(d) {return projection([d.lng,d.lat])[0]})
+				.attr("cy", function(d) {return projection([d.lng,d.lat])[1]})
+				.attr("r", .0000012*zoom.scale());
 
   var image = layer
       .style(prefix + "transform", matrix3d(tiles.scale, tiles.translate))
