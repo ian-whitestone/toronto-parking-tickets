@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+<link rel="stylesheet" href="d3.slider.css" />
 <style>
 
 body {
@@ -84,13 +85,21 @@ body {
   left: 0;
 }
 
+#slider {
+  /*margin: 20px 0 10px 20px;*/
+  width: 1325px;
+}
+
 </style>
 <body>
+  <script src="//d3js.org/d3.v3.min.js"></script>
+  <script src="http://d3js.org/d3.geo.tile.v0.min.js"></script>
+  <script src="d3.tip.js"></script>
+  <script src="d3.slider.js"></script>
 
-<script src="//d3js.org/d3.v3.min.js"></script>
-<script src="http://d3js.org/d3.geo.tile.v0.min.js"></script>
-<!-- <script src="d3.tip.js"></script> -->
-<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+
+<div id="slider"></div>
+
 <script>
 
 
@@ -104,12 +113,24 @@ var margin = 75,
     prefix = prefixMatch(["webkit", "ms", "Moz", "O"]);
 
 
-// http://stackoverflow.com/questions/9491885/csv-to-array-in-d3-js
+// Initialize slider
+// d3.svg.axis().orient("bottom").ticks(8)
+var slider_axis = d3.svg.axis().orient("bottom").tickFormat(d3.format("d")).ticks(8);
+// var slider = d3.slider().axis(true).min(2008).max(2015).step(1).value(2011); //start at 2011
+var slider = d3.slider().axis(slider_axis).min(2008).max(2015).step(1);
 
+
+// Render the slider in the div
+d3.select('#slider')
+    .style("top",70+"px")
+    .style("left", 100 + "px")
+    .call(slider);
+
+// http://stackoverflow.com/questions/9491885/csv-to-array-in-d3-js
 d3.csv("top_hydrants.csv", function(error, dataset)
       {
         data=dataset.filter(function(d) {
-                return d.year == 2014;}) //eventually need this to be reactive based on transition/user selection
+                return d.year == 2015;}) //eventually need this to be reactive based on transition/user selection
         add_circles(data)
       });
 
