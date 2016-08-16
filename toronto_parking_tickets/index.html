@@ -115,15 +115,13 @@ var left_offset=50,
 
 // Initialize slider
 var slider_axis = d3.svg.axis().orient("bottom").tickFormat(d3.format("d")).ticks(8);
-var slider = d3.slider().axis(slider_axis).min(2008).max(2015).step(1).value(2011); //start at 2011
-
-
-// Render the slider in the div
-d3.select('#slider')
-    .style("width",width+"px")
-    .style("top",top_offset - 30 +"px")
-    .style("left",left_offset + "px")
-    .call(slider);
+var slider = d3.slider().axis(slider_axis).min(2008).max(2015)
+            .step(1).value(2011) //start at 2011
+            .on("slide", function(evt, value) {
+                console.log("New value ", slider.value());
+              //function call
+              // displaySites(newData);
+            }); 
 
 // http://stackoverflow.com/questions/9491885/csv-to-array-in-d3-js
 d3.csv("top_hydrants.csv", function(error, dataset)
@@ -193,8 +191,21 @@ var tip = d3.tip()
     // return "<span style='color:black'>" + d.street_address + "</span>";
   });
 
+
 points.call(tip);
 zoomed();
+
+// Render the slider in the div
+d3.select('#slider')
+.style("width",width+"px")
+.style("top",top_offset - 30 +"px")
+.style("left",left_offset + "px")
+.call(slider);
+
+// Callback function (a function that will be called with the slider obj as argument, when the slider
+// changes)
+console.log("Slider value: ",slider.value());
+
 
 function add_circles(dataset) {
   d3.select("#points").selectAll("circle").data(dataset) //plotted 	locations on map
