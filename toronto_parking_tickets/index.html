@@ -85,10 +85,10 @@ body {
   left: 0;
 }
 
-#slider {
+/*#slider {
   /*margin: 20px 0 10px 20px;*/
   width: 1325px;
-}
+} */
 
 </style>
 <body>
@@ -103,27 +103,26 @@ body {
 <script>
 
 
-// var width = Math.max(960, window.innerWidth),
-//     height = Math.max(500, window.innerHeight),
-//     prefix = prefixMatch(["webkit", "ms", "Moz", "O"]);
-
-var margin = 75,
-	  width = 1400 - margin,
-    height = 800 - margin;
+//configure margin so it is reactive too
+var left_offset=50,
+    top_offset=100,
+    width_margin=2*left_offset,
+    margin=200,
+    width = Math.max(960, window.innerWidth) - width_margin,
+    height = Math.max(500, window.innerHeight) - margin;
     prefix = prefixMatch(["webkit", "ms", "Moz", "O"]);
 
 
 // Initialize slider
-// d3.svg.axis().orient("bottom").ticks(8)
 var slider_axis = d3.svg.axis().orient("bottom").tickFormat(d3.format("d")).ticks(8);
-// var slider = d3.slider().axis(true).min(2008).max(2015).step(1).value(2011); //start at 2011
-var slider = d3.slider().axis(slider_axis).min(2008).max(2015).step(1);
+var slider = d3.slider().axis(slider_axis).min(2008).max(2015).step(1).value(2011); //start at 2011
 
 
 // Render the slider in the div
 d3.select('#slider')
-    .style("top",70+"px")
-    .style("left", 100 + "px")
+    .style("width",width+"px")
+    .style("top",top_offset - 30 +"px")
+    .style("left",left_offset + "px")
     .call(slider);
 
 // http://stackoverflow.com/questions/9491885/csv-to-array-in-d3-js
@@ -156,8 +155,8 @@ var container = d3.select("body").append("div")
     .attr("id", "container")
     .style("width", width + "px")
     .style("height", height + "px")
-    .style("top", 100 + "px")
-    .style("left", 100 + "px")
+    .style("top", top_offset + "px")
+    .style("left", left_offset + "px")
     .call(zoom)
     .on("mousemove", mousemoved); //for coordinates shown on bottom left
 
