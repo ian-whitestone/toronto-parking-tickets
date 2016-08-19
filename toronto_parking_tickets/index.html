@@ -122,7 +122,7 @@ var slider = d3.slider().axis(slider_axis).min(2008).max(2015)
                 console.log("New value ", year);
                 data=raw_data.filter(function(d) {
                         return d.year == year;});
-                add_circles(data,year);
+                add_circles(data);
             });
 
 // Render the slider in the div
@@ -142,7 +142,7 @@ d3.csv("top_hydrants.csv", function(error, dataset)
         raw_data=dataset;
         data=dataset.filter(function(d) {
                 return d.year == default_year;}) //eventually need this to be reactive based on transition/user selection
-        add_circles(data,default_year)
+        add_circles(data)
       });
 
 
@@ -157,7 +157,8 @@ var projection = d3.geo.mercator()
 var zoom = d3.behavior.zoom()
     .scale(projection.scale() * 2 * Math.PI)
     .scaleExtent([1 << 200, 1 << 25])
-    .translate(projection([-79.38558, 43.65228, ]).map(function (x) {
+    // .translate(projection([-79.38558, 43.65228, ]).map(function (x) {
+    .translate(projection([-79.38558, 43.7020, ]).map(function (x) {
         return -x;
     }))
     .on("zoom", zoomed);
@@ -209,20 +210,20 @@ var tip = d3.tip()
 points.call(tip);
 zoomed();
 
-
-
-function add_circles(dataset,year) {
+function add_circles(dataset) {
   d3.select("#points").selectAll("circle").data(dataset) //plotted 	locations on map
   .enter()
   .append("circle")
-  // .filter(function(d) {return d.year == year;})
   .attr("class", "parking_spot")
-  .attr("cx", function(d) {return projection([d.lng, d.lat])[0]})
-  .attr("cy", function(d) {return projection([d.lng, d.lat])[1]})
+  .attr("cx", function(d) {return projection([d.lng,d.lat])[0]})
+  .attr("cy", function(d) {return projection([d.lng,d.lat])[1]})
   .attr("r", 1)
   .on('mouseover', tip.show)
-  .on('mouseout', tip.hide)
-  zoomed();
+  .on('mouseout', tip.hide);
+
+  d3.selectAll("circle")
+      .transition().duration(2000)
+      .attr("r", function(d) {return 0.00000000015*d.fine_sum*zoom.scale()});
 }
 
 function zoomed() {
@@ -239,7 +240,7 @@ function zoomed() {
   var circles = d3.selectAll("circle")
         .attr("cx", function(d) {return projection([d.lng,d.lat])[0]})
 				.attr("cy", function(d) {return projection([d.lng,d.lat])[1]})
-				.attr("r", function(d) {return 0.00000000012*d.fine_sum*zoom.scale()} ); //need reactive scaling....not hardcoded
+				.attr("r", function(d) {return 0.00000000012*d.fine_sum*zoom.scale()});
 
   var image = layer
       .style(prefix + "transform", matrix3d(tiles.scale, tiles.translate))
