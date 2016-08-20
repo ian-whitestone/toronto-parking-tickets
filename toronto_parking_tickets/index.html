@@ -113,6 +113,7 @@ var left_offset=50,
     prefix = prefixMatch(["webkit", "ms", "Moz", "O"]);
 
 var default_year=2011;//start at 2011
+var to=[-79.38558, 43.7020];
 
 // Initialize slider
 var slider_axis = d3.svg.axis().orient("bottom").tickFormat(d3.format("d")).ticks(8);
@@ -132,17 +133,38 @@ d3.select('#slider')
 .style("left",left_offset + "px")
 .call(slider);
 
-// http://stackoverflow.com/questions/9491885/csv-to-array-in-d3-js
-
 
 var raw_data;
+var rscale;
 
-d3.csv("top_hydrants.csv", function(error, dataset)
+
+d3.csv("top_spots.csv", function(error, dataset)
       {
+        // Convert strings to numbers.
+          dataset.forEach(function(d) {
+            d.fine_sum = +d.fine_sum;
+            d.infraction_code=+d.infraction_code;
+            d.count=+d.count;
+            d.mean_hour=+d.mean_hour;
+          });
+
         raw_data=dataset;
-        data=dataset.filter(function(d) {
-                return d.year == default_year;}) //eventually need this to be reactive based on transition/user selection
-        add_circles(data)
+
+        dataset=dataset.filter(function(d) {
+                return d.year == default_year;}); //eventually need this to be reactive based on transition/user selection
+
+        // dataset=dataset.filter((function(d) {
+        //         return d.infraction_code == 15;}));
+
+        //define these once csv data is loaded and filtered
+        max = d3.max(dataset, function(d) { return d.fine_sum; });
+        min = d3.min(dataset, function(d) { return d.fine_sum; });
+
+        rscale = d3.scale.linear()
+              .domain([min,max])
+              .range([0.00000018,0.00000852]); //custom max/zoom.scale & min/zoom.scale values
+
+        add_circles(dataset);
       });
 
 
@@ -150,15 +172,16 @@ var tile = d3.geo.tile()
     .size([width, height]);
 
 var projection = d3.geo.mercator()
-  .scale((1 << 20) / 2 / Math.PI)
-  .translate([-width / 2, -height / 2]);
+    .scale((1 << 20) / 2 / Math.PI)
+    .translate([-width / 2, -height / 2]);
+
+var testvar=projection.scale() * 2 * Math.PI
 
 //revised: zoom to toronto
 var zoom = d3.behavior.zoom()
     .scale(projection.scale() * 2 * Math.PI)
     .scaleExtent([1 << 200, 1 << 25])
-    // .translate(projection([-79.38558, 43.65228, ]).map(function (x) {
-    .translate(projection([-79.38558, 43.7020, ]).map(function (x) {
+    .translate(projection([-79.38558, 43.7020]).map(function (x) {
         return -x;
     }))
     .on("zoom", zoomed);
@@ -203,12 +226,14 @@ var tip = d3.tip()
               "Fine Sum: $" + d.fine_sum + "</span>" + "<br />" + "<span>" +
               "Total Tickets: " + d.count + "</span>" + "<br />" + "<span>" +
               "Ticket Cost: $" + d.fine_amt + "</span>";
+              // "Circle Radius: " + 0.00000000012*d.fine_sum + "</span>";
     // return "<span style='color:black'>" + d.street_address + "</span>";
   });
 
 
 points.call(tip);
 zoomed();
+
 
 function add_circles(dataset) {
   d3.select("#points").selectAll("circle").data(dataset) //plotted 	locations on map
@@ -223,10 +248,13 @@ function add_circles(dataset) {
 
   d3.selectAll("circle")
       .transition().duration(2000)
-      .attr("r", function(d) {return 0.00000000015*d.fine_sum*zoom.scale()});
+      .attr("r", function(d) {return rscale(d.fine_sum)*zoom.scale()});
 }
 
+
 function zoomed() {
+
+  console.log("ZOOM: ",zoom.scale());
 
   var tiles = tile
       .scale(zoom.scale())
@@ -240,7 +268,7 @@ function zoomed() {
   var circles = d3.selectAll("circle")
         .attr("cx", function(d) {return projection([d.lng,d.lat])[0]})
 				.attr("cy", function(d) {return projection([d.lng,d.lat])[1]})
-				.attr("r", function(d) {return 0.00000000012*d.fine_sum*zoom.scale()});
+				.attr("r", function(d) {return rscale(d.fine_sum)*zoom.scale()});
 
   var image = layer
       .style(prefix + "transform", matrix3d(tiles.scale, tiles.translate))
