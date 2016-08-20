@@ -122,6 +122,8 @@ var num_format = d3.format("0,000");
 
 var raw_data; //load csv data into this variable
 
+var fine_amts; //load json object into this variable for the legend
+
 var infrac_cds;
 
 //circles sized by total revenue which varies year by year
@@ -144,6 +146,11 @@ d3.select('#slider')
 .style("left",left_offset + "px")
 .call(slider);
 
+
+d3.json("fine_amts.json", function(data) {
+      console.log(data[15]);
+      fine_amts=data;
+    });
 
 d3.csv("top_spots.csv", function(error, dataset)
       {
@@ -234,10 +241,10 @@ var legend_title = d3.select("body").append("svg")
 	.text("Infraction Type");
 
 var legend = d3.select("body").append("svg")
-	.attr("width", 200)
+	.attr("width", 300)
   .style("position", "absolute")
   .style("top", top_offset+10+"px")
-  .style("left",50+"px")
+  .style("left",10+"px")
 	.attr("height", height)
 	.attr("class","legend");
 
@@ -302,28 +309,28 @@ function add_circles(dataset) {
 //build legend pane
 function build_legend(){
 
-  var radius=15;
+  var node_size=15;
 
   var legend_node = legend.selectAll(".node")
   			.attr("class","node")
   			.data(infrac_cds)
   			.enter().append("g")
-  			// .attr("transform", function(d, i) {return "translate(" + radius + "," + (i+1) * (radius*2+10) + ")";});
-        .attr("transform", function(d, i) {return "translate(0," + (i+1) * (radius*1.5) + ")";});
-        // .attr("transform", function(d, i) {return "translate(0," + (i+1.5) * 20 + ")"; });
+        .attr("transform", function(d, i) {return "translate(0," + (i+1) * (node_size*1.5) + ")";});
 
   		legend_node.append("rect")
   			.attr("class","node")
-  			.attr("width", radius)
-        .attr("height", radius)
+  			.attr("width", node_size)
+        .attr("height", node_size)
   			.style("fill", function(d) {return color_scale(d);});
 
   		legend_node.append("text")
   			.attr("class","node")
   			.attr("x", 20)
-  			.attr("y", radius/2)
+  			.attr("y", node_size/2)
   			.attr("dy", ".35em")
-  			.text(function(d) { return d; });
+  			.text(function(d) {
+          legend_str=d+": "+fine_amts[d]['fine_descp']+" - $"+fine_amts[d]['fine_amt'];
+          return legend_str; });
   }
 
 function zoomed() {
