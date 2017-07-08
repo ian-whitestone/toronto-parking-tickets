@@ -6,7 +6,7 @@
 text {font: 10px sans-serif;}
 
 body {
-  margin: 0;
+  /*margin: 0;*/
 }
 
 #points{
@@ -109,8 +109,8 @@ body {
 //define global variables
 var left_offset=300, //inherently sets the margin
     top_offset=100,
-    width_margin=2*left_offset,
-    margin=200,
+    width_margin=1.25*left_offset,
+    margin=125,
     width = Math.max(960, window.innerWidth) - width_margin,
     height = Math.max(500, window.innerHeight) - margin;
     prefix = prefixMatch(["webkit", "ms", "Moz", "O"]);
@@ -222,14 +222,13 @@ var title_width = (document.getElementById("title").clientWidth + 1);
 d3.select("#title")
   .style("left", left_offset+width/2-title_width/2 + "px");
 
-
-
 var legend_title = d3.select("body").append("svg")
 	.attr("width", 200)
 	.attr("height", 100)
 	.attr("id","legend_title")
   .style("position", "absolute")
-  .style("top", top_offset+"px")
+  // .style("top", top_offset+"px")
+  .style("top", 10+"px")
   .style("left",50+"px")
   .append("text")
 	.attr("dy", ".35em")
@@ -243,9 +242,9 @@ var legend_title = d3.select("body").append("svg")
 var legend = d3.select("body").append("svg")
 	.attr("width", 300)
   .style("position", "absolute")
-  .style("top", top_offset+10+"px")
+  .style("top", 20+"px")
   .style("left",10+"px")
-	.attr("height", height)
+	.attr("height", 700)
 	.attr("class","legend");
 
 var tip = d3.tip()
