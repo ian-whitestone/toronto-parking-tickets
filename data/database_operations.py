@@ -5,6 +5,21 @@ import sys
 import config
 import logging as log
 
+"""
+CREATE TABLE tickets (
+    infraction_date date,
+    time_of_infraction integer,
+    infraction_code integer,
+    infraction_description text,
+    fine_amt integer,
+    location1 varchar(10),
+    location2 varchar(50),
+    province varchar(5)
+)
+
+CREATE INDEX tickets_loc ON tickets (location2);
+"""
+
 def getConnection():
     """
     Function to create a connection to postgres.
