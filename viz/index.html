@@ -115,8 +115,8 @@ var left_offset=300, //inherently sets the margin
     height = Math.max(500, window.innerHeight) - margin;
     prefix = prefixMatch(["webkit", "ms", "Moz", "O"]);
 
-var default_year=2011;//start at 2011
-var to=[-79.38558, 43.7020];
+var default_year = 2011;//start at 2011
+var to = [-79.38558, 43.7020];
 
 var num_format = d3.format("0,000");
 
@@ -357,11 +357,15 @@ function zoomed() {
   image.exit()
       .remove();
 
+
+//https://api.mapbox.com/styles/v1/mapbox/dark-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiaWFud2hpdGVzdG9uZSIsImEiOiJjajJqcXY0cGowMDIzMzJueHRkbTdwb3lxIn0.UOywpIDBUqX6my3XaHeKsw"
+
 //Ian: play with this to format what OSM gives you...
   image.enter().append("img")
       .attr("class", "tile")
       // .attr("src", function(d) { return "http://" + ["a", "b", "c"][Math.random() * 3 | 0] + ".tile.openstreetmap.org/" + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
-      .attr("src", function(d) { return "http://" + ["a", "b", "c"][Math.random() * 3 | 0] + ".tile.openstreetmap.se/hydda/full/" + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
+      // .attr("src", function(d) { return "http://" + ["a", "b", "c"][Math.random() * 3 | 0] + ".tile.openstreetmap.se/hydda/full/" + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
+      .attr("src", function(d) { return "https://api.mapbox.com/styles/v1/mapbox/dark-v9/tiles/256/" + d[2] + "/" + d[0] + "/" + d[1] + "?access_token=pk.eyJ1IjoiaWFud2hpdGVzdG9uZSIsImEiOiJjajJqcXY0cGowMDIzMzJueHRkbTdwb3lxIn0.UOywpIDBUqX6my3XaHeKsw"; })
       .style("left", function(d) { return (d[0] << 8) + "px"; })
       .style("top", function(d) { return (d[1] << 8) + "px"; });
 }
