@@ -35,8 +35,7 @@ class IteratorFile(io.TextIOBase):
 
         try:
             while self._f.tell() < length:
-                self._f.write(
-                    unicode(next(self._it), 'utf-8').encode('utf-8') + u"\n")
+                self._f.write(next(self._it) + "\n")
 
         except StopIteration as e:
             # soak up StopIteration. this block is not necessary because
@@ -75,14 +74,14 @@ def postgres_load(conn, tablename, data):
         table_width = len(data[0])
         template_string = "|".join(['{}'] * table_width)
         f = IteratorFile((template_string.format(*x) for x in data))
-        results = curs.copy_from(f, tablename, sep="|", null='NULL')
+        results = curs.copy_from(f, tablename, sep="|", null='None')
         curs.close()
         conn.commit()
         log.info('Data succesfully loaded')
         return True
     except Exception as e:
         log.exception("Unable to load data to Postgres due to error: %s"
-                        % e.message)
+                        % e)
         return False
 
 
@@ -99,10 +98,12 @@ def getConnection():
     try:
         cnxn = psycopg2.connect(host=config.PS_HOST_NAME,
                                 port=config.PS_PORT,
-                                database=config.PS_DB_NAME)
+                                database=config.PS_DB_NAME,
+                                user=config.PS_UID,
+                                password=config.PS_PWD)
         return cnxn
     except Exception as e:
-        log.exception("Unable to connect to postgres due to error: " + e.message)
+        log.exception("Unable to connect to postgres due to error: " + e)
         return None
 
 
@@ -120,7 +121,7 @@ def closeConnection(cnxn):
         return True
 
     except Exception as e:
-        log.exception("Closing postgres connection failed due to error: " + e.message)
+        log.exception("Closing postgres connection failed due to error: " + e)
         return False
 
 
@@ -153,7 +154,7 @@ def query(conn, query, data=False, columns=False):
         cur.close()
         return resultset
     except Exception as e:
-        log.exception("Unable to run query due to error: " + e.message)
+        log.exception("Unable to run query due to error: " + e)
         return False
 
 
@@ -181,5 +182,5 @@ def execute_query(conn, query, data=False, multiple=False):
         cur.close()
         return True
     except Exception as e:
-        log.exception("Unable to execute query due to error: " + e.message)
+        log.exception("Unable to execute query due to error: " + e)
         return False
