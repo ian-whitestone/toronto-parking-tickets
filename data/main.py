@@ -30,7 +30,7 @@ allFiles = glob.glob(main_dir +'/src' + "/*.csv")
 print ('Attempting to load files')
 
 dfs = []
-for file_path in [allFiles[2]]:
+for file_path in allFiles:
     try:
         df = pd.read_csv(file_path,index_col=None,quoting=2,
                             error_bad_lines=False) #quoting=2
@@ -86,7 +86,8 @@ for record in records:
     cleaned_record = cleanRecord(record)
     data.append(cleaned_record)
 
-print ('Loading to Postgres')
+
+print ('Loading %s rows to Postgres' % len(data))
 conn = dbo.getConnection()
 dbo.postgres_load(conn, 'tickets', data)
 

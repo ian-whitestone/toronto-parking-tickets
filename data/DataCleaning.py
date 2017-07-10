@@ -20,6 +20,7 @@ def check_varchar(**kwargs):
     val = kwargs['val']
     try:
         cleaned_val = str(val)[0:kwargs['length']]
+        cleaned_val = cleaned_val.replace('\\','')
     except Exception as e:
         log.debug('Unable to convert %s to a string due to error %s' %
                 (val, e))
@@ -31,6 +32,7 @@ def check_text(**kwargs):
     val = kwargs['val']
     try:
         cleaned_val = str(val)
+        cleaned_val = cleaned_val.replace('\\','')
     except Exception as e:
         log.debug('Unable to convert %s to a string due to error %s' %
                 (val, e))
@@ -48,6 +50,7 @@ def check_char(**kwargs):
     if str_check == False:
         try:
             val = str(kwargs['val'])
+            val = val.replace('\\','')
         except Exception as e:
             log.debug('Unable to convert %s to a string due to error %s' %
                     (val, e))
