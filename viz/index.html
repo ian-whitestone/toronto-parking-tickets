@@ -3,13 +3,15 @@
   <head>
     <meta charset="utf-8">
 
-    <title>Sticky Footer Template for Bootstrap</title>
+    <title>Toronto Parking Tickets</title>
 
     <!-- Bootstrap core CSS -->
     <link href="/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- FontAwesome CSS -->
     <link rel="stylesheet" type="text/css" href="/css/font-awesome-4.6.3/css/font-awesome.min.css" />
+
+    <link rel="stylesheet" href="css/d3.slider.css" />
 
 
     <script src="js/d3.v3.min.js"></script>
@@ -36,7 +38,7 @@
     width: 100%;
     /* Set the fixed height of the footer here */
     height: 60px;
-    background-color: #f5f5f5;
+    /*background-color: #f5f5f5;*/
   }
 
 
@@ -45,13 +47,16 @@
 
   .container {
     width: auto;
+  }
+
+  .container .text-muted {
+    margin: 20px 0;
+  }
+
+  #map-container {
     position: relative;
     overflow: hidden;
     background: #ddd;
-    padding: 0 15px;
-  }
-  .container .text-muted {
-    margin: 20px 0;
   }
 
   .map {
@@ -59,6 +64,10 @@
     overflow: hidden;
   }
 
+  #legend {
+    /*max-height: 100%;*/
+    overflow: scroll;
+  }
   #points{
   	width:100%;
   	height:100%;
@@ -127,17 +136,34 @@
     left: 0;
   }
 
+  .top-buffer { margin-top:40px; }
+
   </style>
 
   <body>
 
     <!-- Begin page content -->
-    <div class="container">
-      <div class="page-header">
-        <h1>Sticky footer</h1>
+    <div class="container" style="width:100%">
+    <h1>Toronto Parking Tickets</h1>
+
+
+      <div class="row" style="width:100%;">
+          <div class="col-md-12">
+            <div id="slider" style="width:90%; margin-left:5%"></div>
+          </div>
       </div>
-      <p class="lead">Pin a fixed-height footer to the bottom of the viewport in desktop browsers with this custom HTML and CSS.</p>
-      <p>Use <a href="../sticky-footer-navbar">the sticky footer with a fixed navbar</a> if need be, too.</p>
+
+      <div class="row top-buffer" style="width:100%">
+        <div class="col-md-3">
+          <div id="legend" style="height:500"></div>
+        </div>
+
+        <div class="col-md-9">
+          <div id="map-container"></div>
+        </div>
+      </div>
+
+
     </div>
 
     <footer class="footer">
@@ -148,9 +174,11 @@
           <a href="https://github.com/ian-whitestone/toronto-parking-tickets/issues/new" target="_blank"> <i class="fa fa-bug"></i>  Report an Issue</a>
         </p>
       </div>
-
     </footer>
 
-
   </body>
+
+  <!-- main JS that creates the visualization -->
+  <script src="js/toronto-tickets.js"></script>
+
 </html>
