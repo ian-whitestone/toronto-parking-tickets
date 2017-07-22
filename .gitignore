@@ -1,6 +1,7 @@
 ## excel/flat files
 *.csv
 *.xlsx'
+notes.txt
 
 ## images
 *.jp*

@@ -147,11 +147,13 @@ d3.select('#slider')
 .call(slider);
 
 
+// load the fine amounts dictionary dataset
 d3.json("fine_amts.json", function(data) {
       console.log(data[15]);
       fine_amts=data;
     });
 
+// load the main dataset
 d3.csv("top_spots.csv", function(error, dataset)
       {
         // Convert strings to numbers.
@@ -247,6 +249,7 @@ var legend = d3.select("body").append("svg")
 	.attr("height", 700)
 	.attr("class","legend");
 
+// define hte information displayed in the tooltip
 var tip = d3.tip()
   .attr('class', 'd3-tip')
   .offset([-10, 0])
@@ -262,6 +265,7 @@ var tip = d3.tip()
 
 points.call(tip);
 zoomed();
+
 
 function update(year) {
   data=raw_data.filter(function(d) {
@@ -360,7 +364,7 @@ function zoomed() {
 
 //https://api.mapbox.com/styles/v1/mapbox/dark-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiaWFud2hpdGVzdG9uZSIsImEiOiJjajJqcXY0cGowMDIzMzJueHRkbTdwb3lxIn0.UOywpIDBUqX6my3XaHeKsw"
 
-//Ian: play with this to format what OSM gives you...
+//play with this to format what OSM gives you...
   image.enter().append("img")
       .attr("class", "tile")
       // .attr("src", function(d) { return "http://" + ["a", "b", "c"][Math.random() * 3 | 0] + ".tile.openstreetmap.org/" + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
