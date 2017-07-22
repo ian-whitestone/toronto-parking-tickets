@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<link rel="stylesheet" href="d3.slider.css" />
+<link rel="stylesheet" href="css/d3.slider.css" />
 <style>
 
 text {font: 10px sans-serif;}
@@ -97,8 +97,8 @@ body {
 <body>
   <script src="//d3js.org/d3.v3.min.js"></script>
   <script src="http://d3js.org/d3.geo.tile.v0.min.js"></script>
-  <script src="d3.tip.js"></script>
-  <script src="d3.slider.js"></script>
+  <script src="js/d3.tip.js"></script>
+  <script src="js/d3.slider.js"></script>
 
 
 <div id="slider"></div>
@@ -148,13 +148,13 @@ d3.select('#slider')
 
 
 // load the fine amounts dictionary dataset
-d3.json("fine_amts.json", function(data) {
+d3.json("/data/fine_amts.json", function(data) {
       console.log(data[15]);
       fine_amts=data;
     });
 
 // load the main dataset
-d3.csv("top_spots.csv", function(error, dataset)
+d3.csv("/data/top_spots.csv", function(error, dataset)
       {
         // Convert strings to numbers.
           dataset.forEach(function(d) {
