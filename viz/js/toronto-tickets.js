@@ -15,6 +15,8 @@ var fine_amts; //load json object into this variable for the legend
 
 var infrac_cds;
 
+var filterValues = []; //hold the infraction types user has clicked
+
 //circles sized by total revenue which varies year by year
 var rscale; //scale for circle radius to keep max radius constant across each year
 
@@ -95,11 +97,11 @@ var info = map.append("div")
     .attr("class", "info");
 
 var legend = d3.select("#legend").append("svg")
-	.attr("width", 300)
+	.attr("width", 370)
   // .style("position", "absolute")
   // .style("top", 20+"px")
   // .style("left",10+"px")
-	.attr("height", 300)
+	.attr("height", 700)
 	.attr("class","legend");
 
 // define the information displayed in the tooltip
@@ -117,6 +119,7 @@ var tip = d3.tip()
 
 
 
+// function to remove and re-add points
 function points() {
   d3.select("#points").remove();
   var points = map_container.append("svg")
@@ -174,16 +177,32 @@ function add_circles(data) {
 }
 
 
+
+function legend_filter(e){
+  infrac_cd = e;
+  if (filterValues.includes(infrac_cd)) {
+    d3.select(this).style("opacity", 1.0);
+    index = filterValues.indexOf(infrac_cd)
+    filterValues.splice(index,1)
+  }
+  else {
+   d3.select(this).style("opacity", 0.2);
+   filterValues.push(infrac_cd)
+  }
+}
+
 //build legend pane
 function build_legend(){
-
+  
   var node_size=15;
 
   var legend_node = legend.selectAll(".node")
         .attr("class","node")
         .data(infrac_cds)
         .enter().append("g")
-        .attr("transform", function(d, i) {return "translate(0," + (i+1) * (node_size*1.5) + ")";});
+        .attr("transform", function(d, i) {return "translate(0," + (i+1) * (node_size*1.5) + ")";})
+        .attr("opacity",1.0)
+        .on("click", legend_filter);
 
       legend_node.append("rect")
         .attr("class","node")
