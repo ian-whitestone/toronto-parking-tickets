@@ -6,7 +6,9 @@ var WIDTH = document.getElementById("map-container").clientWidth;
 var HEIGHT = Math.max(500, window.innerHeight) - 175;
 var PREFIX = prefixMatch(["webkit", "ms", "Moz", "O"]);
 
-var current_year; // hold hte current year
+var current_year; // hold tje current year
+var fine_amt=0; //hold tje current fine amount filter value
+var ticket_freq=0; //hold the current ticket/day filter value
 
 var num_format = d3.format("0,000");
 
@@ -23,39 +25,71 @@ var rscale; //scale for circle radius to keep max radius constant across each ye
 
 var color_scale = d3.scale.category10();
 
-// Initialize slider
-// var slider_axis = d3.svg.axis().orient("bottom").tickFormat(d3.format("d")).ticks(8);
-//
-// var slider = d3.slider().axis(slider_axis).min(2008).max(2015)
-//             .step(1).value(DEFAULT_YEAR)
-//             .on("slide", function(evt, year) {
-//             update(year);
-//             });
-//
-// // Render the slider in the div
-// d3.select('#slider')
-//   .call(slider);
+var dateSlider = document.getElementById('date-slider');
 
-
-var rangeSlider = document.getElementById('slider');
+var amtSlider = document.getElementById('amt-slider');
+var freqSlider = document.getElementById('freq-slider');
 
 function buildSlider() {
-  noUiSlider.create(rangeSlider, {
+  noUiSlider.create(dateSlider, {
   	start: [ DEFAULT_YEAR ],
-    connect: true,
+    connect: "lower",
     step: 1,
     tooltips: [wNumb({decimals:0})],
   	range: {
   		'min': [  2008 ],
-  		'max': [ 2016 ]
+  		'max': [ 2015 ]
   	}
   });
 
-  rangeSlider.noUiSlider.on('update', function( values, handle ) {
+  dateSlider.noUiSlider.on('update', function( values, handle ) {
   	year = parseInt(values[0]);
     update(year);
   });
 
+  noUiSlider.create(amtSlider, {
+  	start: 0,
+    step: 25,
+    connect: "upper",
+  	orientation: 'vertical',
+    tooltips: [wNumb({decimal:0})],
+  	range: {
+  		'min': 0,
+  		'max': 500
+  	}
+  });
+
+
+  noUiSlider.create(freqSlider, {
+  	start: 0,
+    step: 0.5,
+    connect: "upper",
+  	orientation: 'vertical',
+    tooltips: [wNumb({decimal:0})],
+  	range: {
+  		'min': 0,
+  		'max': 20
+  	}
+  });
+
+
+  amtSlider.noUiSlider.on('change', function( values, handle ) {
+    console.log('amt slider change')
+    fine_amt = parseInt(values[0]);
+    data = filterData();
+    points();
+    add_circles(data);
+  });
+
+
+  freqSlider.noUiSlider.on('change', function( values, handle ) {
+    console.log('freq slider change')
+    console.log(values[0])
+    ticket_freq = parseInt(values[0]);
+    data = filterData();
+    points();
+    add_circles(data);
+  });
 }
 
 
@@ -70,15 +104,15 @@ d3.json("/data/fine_amts.json", function(data) {
 d3.csv("/data/top_spots.csv", function(error, data)
       {
         console.log('ticket location data loaded')
-        console.log(data);
         // Convert strings to numbers.
           data.forEach(function(d) {
             d.fine_sum = +d.fine_sum;
             d.infraction_code=+d.infraction_code;
             d.count=+d.count;
             d.mean_hour=+d.mean_hour;
+            d.freq = Math.round(d.count/365*100)/100
           });
-
+        console.log(data);
         raw_data = data;
 
         buildSlider()
@@ -125,7 +159,7 @@ var foreign = d3.select("#legend").append("foreignObject")
   .attr("height", HEIGHT - 200)
   .append("xhtml:div")
   .style("max-height", HEIGHT - 200 + "px")
-  .style("max-width", "350px")
+  .style("max-width", "500px")
   .style("overflow-y", "scroll")
   .style("overflow-x", "scroll");
 
@@ -145,9 +179,10 @@ var tip = d3.tip()
   .html(function(d) {
     return "<span>" + d.street_address + "</span>" + "<br />" + "<span>" +
               "Total Revenue: $" + num_format(d.fine_sum) + "</span>" + "<br />" + "<span>" +
-              "Tickets/day: " + Math.round(d.count/365*100)/100 + "</span>" + "<br />" + "<span>" +
-              // "Ticket Cost: $" + d.fine_amt +"<br />" + "</span>" +
-              "Infraction Type: " + d.infraction_code + "</span>";
+              "Tickets/day: " + d.freq + "</span>" + "<br />" + "<span>" +
+              "Ticket Cost: $" + d.fine_amt +"<br />" + "</span>" +
+              // "Infraction Type: " + d.infraction_code + "</span>";
+              d.fine_descrp + "</span>";
     // return "<span style='color:black'>" + d.street_address + "</span>";
   });
 
@@ -210,11 +245,19 @@ function add_circles(data) {
   zoomed();
 }
 
+function filterData() {
+  return raw_data.filter(function(d) {
+          return filterValues.includes(String(d.infraction_code)) == false
+          & d.year==current_year
+          & d.fine_amt >= fine_amt
+          & d.freq >= ticket_freq
+          ;});
+}
+
 
 function deselectAll() {
   filterValues = infrac_cds;
-  data = raw_data.filter(function(d) {
-          return filterValues.includes(String(d.infraction_code)) == false & d.year==current_year;});
+  data = filterData();
   points();
   add_circles(data);
   d3.select("#legend").selectAll("g").style("opacity", 0.2);
@@ -223,8 +266,7 @@ function deselectAll() {
 
 function selectAll() {
   filterValues = [];
-  data = raw_data.filter(function(d) {
-          return filterValues.includes(String(d.infraction_code)) == false & d.year==current_year;});
+  data = filterData();
   points();
   add_circles(data);
   d3.select("#legend").selectAll("g").style("opacity", 1.0);
