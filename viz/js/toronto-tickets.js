@@ -52,7 +52,7 @@ function buildSlider() {
     step: 25,
     connect: "upper",
   	orientation: 'vertical',
-    tooltips: [wNumb({decimal:0})],
+    tooltips: [wNumb({decimal:0, prefix: '$'})],
   	range: {
   		'min': 0,
   		'max': 500
@@ -65,7 +65,8 @@ function buildSlider() {
     step: 0.5,
     connect: "upper",
   	orientation: 'vertical',
-    tooltips: [wNumb({decimal:0})],
+    // tooltips: [wNumb({decimal:0, prefix: '#/day > '})],
+    tooltips: [wNumb({decimal:1})],
   	range: {
   		'min': 0,
   		'max': 20
@@ -236,13 +237,48 @@ function add_circles(data) {
   .attr("r",1)
   .style("fill", function(d) {return color_scale(d.infraction_code)})
   .on('mouseover', tip.show)
-  .on('mouseout', tip.hide);
+  .on('mouseout', tip.hide)
+  .on('click', streetView);
 
   // d3.selectAll("circle")
   //     .transition().duration(2000)
   //     .attr("r", function(d) {return rscale(d.fine_sum)*zoom.scale()});
 
   zoomed();
+}
+
+
+// https://developers.google.com/maps/documentation/javascript/examples/streetview-simple
+function streetView(datum) {
+  // console.log(d3.select(this))
+  console.log('loading streetview')
+  $.alert({
+    columnClass: 'col-md-6 col-md-offset-3',
+    title: datum.street_address, //"Streetview: " +
+    content: '',
+    onContentReady: function () {
+        var self = this;
+        // this.setContent('<div class="col-md-6"><div>id="map" style="height:400px"></div></div>  <div class="col-md-6"><divid="pano" style="height:400px"></div></div>');
+        this.setContent('<div id="pano" style="width:100%; height:400px"></div>');
+        var location = {lat: parseFloat(datum.lat), lng: parseFloat(datum.lng)};
+        console.log(location)
+
+        var panorama = new google.maps.StreetViewPanorama(
+            document.getElementById('pano'), {
+              position: location,
+              pov: {
+                heading: 0,
+                pitch: 0
+              },
+              source: google.maps.StreetViewSource.OUTDOOR
+            });
+    },
+    theme: 'light', // light, supervan, dark
+    draggable: true,
+    buttons : {close: {text:'Close'}}
+  });
+
+
 }
 
 function filterData() {
