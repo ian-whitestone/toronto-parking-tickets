@@ -6,6 +6,7 @@ var WIDTH = document.getElementById("map-container").clientWidth;
 var HEIGHT = Math.max(500, window.innerHeight) - 175;
 var PREFIX = prefixMatch(["webkit", "ms", "Moz", "O"]);
 
+var current_year; // hold hte current year
 
 var num_format = d3.format("0,000");
 
@@ -24,7 +25,7 @@ var color_scale = d3.scale.category10();
 
 // Initialize slider
 var slider_axis = d3.svg.axis().orient("bottom").tickFormat(d3.format("d")).ticks(8);
-var slider = d3.slider().axis(slider_axis).min(2008).max(2016)
+var slider = d3.slider().axis(slider_axis).min(2008).max(2015)
             .step(1).value(DEFAULT_YEAR)
             .on("slide", function(evt, year) {
             update(year);
@@ -132,6 +133,7 @@ function points() {
 
 // function to filter the dataset to the selected year
 function update(year) {
+  current_year = year;
   data = raw_data.filter(function(d) {
           return d.year == year;});
 
@@ -149,12 +151,11 @@ function update(year) {
   .domain([min,max])
   .range([0.0000005,0.00001]); //custom max/zoom.scale & min/zoom.scale values //[0.00000018,0.00000852]
 
-  // recreate points
   points();
-
   add_circles(data);
   build_legend();
 }
+
 
 function add_circles(data) {
   d3.select("#points").selectAll("circle")
@@ -177,6 +178,25 @@ function add_circles(data) {
 }
 
 
+function deselectAll() {
+  filterValues = infrac_cds;
+  data = raw_data.filter(function(d) {
+          return filterValues.includes(String(d.infraction_code)) == false & d.year==current_year;});
+  points();
+  add_circles(data);
+  d3.select("#legend").selectAll("g").style("opacity", 0.2);
+}
+
+
+function selectAll() {
+  filterValues = [];
+  data = raw_data.filter(function(d) {
+          return filterValues.includes(String(d.infraction_code)) == false & d.year==current_year;});
+  points();
+  add_circles(data);
+  d3.select("#legend").selectAll("g").style("opacity", 1.0);
+}
+
 
 function legend_filter(e){
   infrac_cd = e;
@@ -184,10 +204,18 @@ function legend_filter(e){
     d3.select(this).style("opacity", 1.0);
     index = filterValues.indexOf(infrac_cd)
     filterValues.splice(index,1)
+    data = raw_data.filter(function(d) {
+            return filterValues.includes(String(d.infraction_code)) == false & d.year==current_year;});
+    points();
+    add_circles(data);
   }
   else {
    d3.select(this).style("opacity", 0.2);
    filterValues.push(infrac_cd)
+   data = raw_data.filter(function(d) {
+           return filterValues.includes(String(d.infraction_code)) == false & d.year==current_year;;});
+   points();
+   add_circles(data);
   }
 }
 
