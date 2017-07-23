@@ -24,16 +24,39 @@ var rscale; //scale for circle radius to keep max radius constant across each ye
 var color_scale = d3.scale.category10();
 
 // Initialize slider
-var slider_axis = d3.svg.axis().orient("bottom").tickFormat(d3.format("d")).ticks(8);
-var slider = d3.slider().axis(slider_axis).min(2008).max(2015)
-            .step(1).value(DEFAULT_YEAR)
-            .on("slide", function(evt, year) {
-            update(year);
-            });
+// var slider_axis = d3.svg.axis().orient("bottom").tickFormat(d3.format("d")).ticks(8);
+//
+// var slider = d3.slider().axis(slider_axis).min(2008).max(2015)
+//             .step(1).value(DEFAULT_YEAR)
+//             .on("slide", function(evt, year) {
+//             update(year);
+//             });
+//
+// // Render the slider in the div
+// d3.select('#slider')
+//   .call(slider);
 
-// Render the slider in the div
-d3.select('#slider')
-  .call(slider);
+
+var rangeSlider = document.getElementById('slider');
+
+function buildSlider() {
+  noUiSlider.create(rangeSlider, {
+  	start: [ DEFAULT_YEAR ],
+    connect: true,
+    step: 1,
+    tooltips: [wNumb({decimals:0})],
+  	range: {
+  		'min': [  2008 ],
+  		'max': [ 2016 ]
+  	}
+  });
+
+  rangeSlider.noUiSlider.on('update', function( values, handle ) {
+  	year = parseInt(values[0]);
+    update(year);
+  });
+
+}
 
 
 // load the fine amounts dictionary dataset
@@ -58,7 +81,7 @@ d3.csv("/data/top_spots.csv", function(error, data)
 
         raw_data = data;
 
-        update(DEFAULT_YEAR);
+        buildSlider()
       });
 
 
