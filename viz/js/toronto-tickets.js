@@ -120,12 +120,22 @@ var layer = map.append("div")
 var info = map.append("div")
     .attr("class", "info");
 
-var legend = d3.select("#legend").append("svg")
-	.attr("width", 370)
+var foreign = d3.select("#legend").append("foreignObject")
+  .attr("width", 500)
+  .attr("height", HEIGHT - 200)
+  .append("xhtml:div")
+  .style("max-height", HEIGHT - 200 + "px")
+  .style("max-width", "350px")
+  .style("overflow-y", "scroll")
+  .style("overflow-x", "scroll");
+
+
+var legend = foreign.append("svg")
+	.attr("width", 400)
   // .style("position", "absolute")
   // .style("top", 20+"px")
   // .style("left",10+"px")
-	.attr("height", 700)
+	.attr("height", 800)
 	.attr("class","legend");
 
 // define the information displayed in the tooltip
