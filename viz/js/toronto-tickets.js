@@ -193,7 +193,7 @@ function legend_filter(e){
 
 //build legend pane
 function build_legend(){
-  
+  d3.select("#legend").selectAll("g").remove();
   var node_size=15;
 
   var legend_node = legend.selectAll(".node")
