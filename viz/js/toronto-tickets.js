@@ -252,26 +252,34 @@ function add_circles(data) {
 function streetView(datum) {
   // console.log(d3.select(this))
   console.log('loading streetview')
+  console.log(datum)
   $.alert({
-    columnClass: 'col-md-6 col-md-offset-3',
+    columnClass: 'col-md-8 col-md-offset-2',
     title: datum.street_address, //"Streetview: " +
     content: '',
     onContentReady: function () {
         var self = this;
         // this.setContent('<div class="col-md-6"><div>id="map" style="height:400px"></div></div>  <div class="col-md-6"><divid="pano" style="height:400px"></div></div>');
-        this.setContent('<div id="pano" style="width:100%; height:400px"></div>');
+        this.setContent('<div id="gmap" style="width:50%; height:400px; float: left;">' +
+        '</div> <div id="pano" style="width:50%; height:400px"></div>');
         var location = {lat: parseFloat(datum.lat), lng: parseFloat(datum.lng)};
         console.log(location)
 
+        var map = new google.maps.Map(document.getElementById('gmap'), {
+          center: location,
+          zoom: 16
+        });
         var panorama = new google.maps.StreetViewPanorama(
             document.getElementById('pano'), {
               position: location,
               pov: {
                 heading: 0,
                 pitch: 0
-              },
-              source: google.maps.StreetViewSource.OUTDOOR
+              }
             });
+        map.setStreetView(panorama);
+
+
     },
     theme: 'light', // light, supervan, dark
     draggable: true,
