@@ -95,14 +95,14 @@ function buildSlider() {
 
 
 // load the fine amounts dictionary dataset
-d3.json("../data/fine_amts.json", function(data) {
+d3.json("/toronto-parking-tickets/data/fine_amts.json", function(data) {
       console.log('fine amounts data loaded')
       console.log(data);
       fine_amts = data;
     });
 
 // load the main dataset
-d3.csv("../data/top_spots.csv", function(error, data)
+d3.csv("/toronto-parking-tickets/data/top_spots.csv", function(error, data)
       {
         console.log('ticket location data loaded')
         // Convert strings to numbers.
