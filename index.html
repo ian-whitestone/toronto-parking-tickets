@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+
+    <title>Toronto Parking Tickets</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <!-- <link href="/css/darkly_bootstrap.css" rel="stylesheet"> -->
+
+    <!-- FontAwesome CSS -->
+    <link rel="stylesheet" type="text/css" href="/css/font-awesome-4.6.3/css/font-awesome.min.css" />
+
+    <link rel="stylesheet" href="css/nouislider.min.css" />
+
+    <script src="js/d3.v3.min.js"></script>
+    <script src="js/d3.geo.tile.v0.min.js"></script>
+    <script src="js/d3.tip.js"></script>
+
+    <script src="js/nouislider.min.js"></script>
+    <script src="js/wNumb.js"></script>
+
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB1qohjxj4Qnp1yYYjjCyj9edOzsXHSVmE">
+    </script>
+
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.min.js"
+      integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+      crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.2.3/jquery-confirm.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.2.3/jquery-confirm.min.js"></script>
+
+  </head>
+
+  <style>
+  /* Sticky footer styles
+  -------------------------------------------------- */
+  html {
+    position: relative;
+    min-height: 100%;
+  }
+  body {
+    /* Margin bottom by footer height */
+    margin-bottom: 60px;
+  }
+  .footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    /* Set the fixed height of the footer here */
+    height: 60px;
+    /*background-color: #f5f5f5;*/
+  }
+
+
+  /* Map Objects styling
+  -------------------------------------------------- */
+
+  .container {
+    width: auto;
+  }
+
+  .container .text-muted {
+    margin: 20px 0;
+  }
+
+  #map-container {
+    position: relative;
+    overflow: hidden;
+    background: #ddd;
+  }
+
+  .map {
+    position: relative;
+    overflow: hidden;
+  }
+
+
+  #points{
+  	width:100%;
+  	height:100%;
+  	position:relative;
+  	z-index:100;
+  }
+
+  .layer {
+    position: absolute;
+  }
+
+  .tile {
+    pointer-events: none;
+    position: absolute;
+    width: 256px;
+    height: 256px;
+  }
+
+  .parking_spot{
+  	opacity: 0.6;
+  	/*fill: black; fill is now defined based on infraction code*/
+  }
+
+  .parking_spot:hover{
+  	opacity: 0.4;
+  	fill: #ff8a00;
+  }
+
+  .info {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+  }
+
+
+  .d3-tip {
+    line-height: 1.5;
+    font-weight: bold;
+  	font-family: Helvetica, Arial, sans-serif;
+  	font-size:13px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 3px;
+  	position:relative;
+  	z-index:101;
+  }
+
+  /* Creates a small triangle extender for the tooltip */
+  .d3-tip:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 20px;
+    width: 100%;
+    line-height: .5;
+    color: rgba(0, 0, 0, 0.8);
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+  }
+
+  /* Style northward tooltips differently */
+  .d3-tip.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+  }
+
+  .top-buffer { margin-top:40px; }
+
+  #amt-slider .noUi-connect {
+  	background: #ffa500;
+  }
+
+  #freq-slider .noUi-connect {
+    background: #ff6666;
+  }
+
+  #date-slider .noUi-connect {
+    background: #20b2aa;
+  }
+
+  /*#amt-slider .noUi-base {
+    background: red;
+}
+  #amt-slider .noUi-background {
+  	background: blue;
+}*/
+
+  </style>
+
+  <body>
+
+    <!-- Begin page content -->
+    <div class="container" style="width:100%">
+    <h1>Toronto Parking Tickets</h1>
+
+
+      <div class="row" style="width:100%;">
+          <div class="col-md-12">
+            <div id="date-slider" style="width:90%; margin-left:5%"></div>
+          </div>
+      </div>
+
+      <div class="row top-buffer" style="width:100%">
+        <div class="col-md-3">
+          <div class="row">
+            <div class="col-md-6">
+              <button type="button" class="btn" onclick="selectAll();">Select All</button>
+            </div>
+            <div class="col-md-6">
+              <button type="button" class="btn" onclick="deselectAll();">Deselect All</button>
+            </div>
+          </div>
+
+          <div id="legend"></div>
+
+          <div class="row" style="margin-left:0%; margin-top:0%">
+            <div class="col-md-4 col-md-offset-1">
+              <h4>$/ticket </h4>
+            </div>
+            <div class="col-md-4 col-md-offset-1">
+              <h4>Tickets/day </h4>
+            </div>
+          </div>
+
+          <div class="row" style="margin-left:0%; margin-top:5%">
+            <div class="col-md-4 col-md-offset-2">
+              <div id="amt-slider" style="height:150px"></div>
+            </div>
+            <div class="col-md-4 col-md-offset-2">
+              <div id="freq-slider" style="height:150px"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-9">
+          <div id="map-container"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="footer">
+      <div class="container" valign="center">
+        <p class="text-muted" align="center">
+          <a href="https://github.com/ian-whitestone/toronto-parking-tickets" target="_blank"><i class="fa fa-github-alt"></i>  GitHub</a> |
+          <a href="mailto:ianwhitestone@hotmail.com&subject=Toronto Parking Tickets Website"><small><i class="fa fa-envelope"></i></small>  Email Me</a> |
+          <a href="https://github.com/ian-whitestone/toronto-parking-tickets/issues/new" target="_blank"> <i class="fa fa-bug"></i>  Report an Issue</a>
+        </p>
+      </div>
+    </footer>
+
+  </body>
+
+  <!-- main JS that creates the visualization -->
+  <script src="js/toronto-tickets.js"></script>
+
+</html>
