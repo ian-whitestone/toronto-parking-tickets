@@ -117,8 +117,8 @@ d3.csv("/data/top_spots.csv", function(error, data)
         raw_data = data;
 
         buildSlider()
+        instructions()
       });
-
 
 var tile = d3.geo.tile()
     .size([WIDTH, HEIGHT]);
@@ -424,4 +424,16 @@ function formatLocation(p, k) {
   var format = d3.format("." + Math.floor(Math.log(k) / 2 - 2) + "f");
   return (p[1] < 0 ? format(-p[1]) + "°S" : format(p[1]) + "°N") + " "
        + (p[0] < 0 ? format(-p[0]) + "°W" : format(p[0]) + "°E");
+}
+
+// function to display a pop up box with instructions
+function instructions() {
+  $.alert({
+    title: 'Instructions',
+    content: '<li>Hover over any of the circles for a summary of that location</li>' +
+    '<li>Click on a circle to see the Google Maps Streetview (location is not always correct, use the slider to adjust the streetview positioning)</li>'+
+    '<li>Use the horizontal slider at the top of the page to change the year</li>'+
+    '<li>Use the vertical sliders to filter by ticket amount, or number of tickets per day</li>'+
+    '<li>Click on parking ticket types in the legend to toggle their inclusion on the map</li>',
+  });
 }
