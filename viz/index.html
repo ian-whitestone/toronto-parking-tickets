@@ -1,399 +1,216 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<link rel="stylesheet" href="d3.slider.css" />
-<style>
-
-text {font: 10px sans-serif;}
-
-body {
-  /*margin: 0;*/
-}
-
-#points{
-	width:100%;
-	height:100%;
-	position:relative;
-	z-index:100;
-}
-
-#container {
-  position: relative;
-  overflow: hidden;
-	background: #ddd;
-}
-
-.map {
-  position: relative;
-  overflow: hidden;
-}
-
-.layer {
-  position: absolute;
-}
-
-.tile {
-  pointer-events: none;
-  position: absolute;
-  width: 256px;
-  height: 256px;
-}
-
-.parking_spot{
-	opacity: 0.6;
-	/*fill: black; fill is now defined based on infraction code*/
-}
-
-.parking_spot:hover{
-	opacity: 0.4;
-	fill: #ff8a00;
-}
-
-.info {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-}
-
-
-.d3-tip {
-  line-height: 1.5;
-  font-weight: bold;
-	font-family: Helvetica, Arial, sans-serif;
-	font-size:13px;
-  padding: 10px;
-  background: rgba(0, 0, 0, 0.8);
-  color: #fff;
-  border-radius: 3px;
-	position:relative;
-	z-index:101;
-}
-
-/* Creates a small triangle extender for the tooltip */
-.d3-tip:after {
-  box-sizing: border-box;
-  display: inline;
-  font-size: 20px;
-  width: 100%;
-  line-height: .5;
-  color: rgba(0, 0, 0, 0.8);
-  content: "\25BC";
-  position: absolute;
-  text-align: center;
-}
-
-/* Style northward tooltips differently */
-.d3-tip.n:after {
-  margin: -1px 0 0 0;
-  top: 100%;
-  left: 0;
-}
-
-/*#slider {
-  /*margin: 20px 0 10px 20px;*/
-  width: 1325px;
-} */
-
-</style>
-<body>
-  <script src="//d3js.org/d3.v3.min.js"></script>
-  <script src="http://d3js.org/d3.geo.tile.v0.min.js"></script>
-  <script src="d3.tip.js"></script>
-  <script src="d3.slider.js"></script>
-
-
-<div id="slider"></div>
-
-<script>
-
-
-//define global variables
-var left_offset=300, //inherently sets the margin
-    top_offset=100,
-    width_margin=1.25*left_offset,
-    margin=125,
-    width = Math.max(960, window.innerWidth) - width_margin,
-    height = Math.max(500, window.innerHeight) - margin;
-    prefix = prefixMatch(["webkit", "ms", "Moz", "O"]);
-
-var default_year = 2011;//start at 2011
-var to = [-79.38558, 43.7020];
-
-var num_format = d3.format("0,000");
-
-var raw_data; //load csv data into this variable
-
-var fine_amts; //load json object into this variable for the legend
-
-var infrac_cds;
-
-//circles sized by total revenue which varies year by year
-var rscale; //scale for circle radius to keep max radius constant across each year
-
-var color_scale = d3.scale.category10();
-
-// Initialize slider
-var slider_axis = d3.svg.axis().orient("bottom").tickFormat(d3.format("d")).ticks(8);
-var slider = d3.slider().axis(slider_axis).min(2008).max(2015)
-            .step(1).value(default_year)
-            .on("slide", function(evt, year) {
-            update(year);
-            });
-
-// Render the slider in the div
-d3.select('#slider')
-.style("width",width+"px")
-.style("top",top_offset - 30 +"px")
-.style("left",left_offset + "px")
-.call(slider);
-
-
-// load the fine amounts dictionary dataset
-d3.json("/fine_amts.json", function(data) {
-      console.log(data[15]);
-      fine_amts=data;
-    });
-
-// load the main dataset
-d3.csv("/data/top_spots.csv", function(error, dataset)
-      {
-        // Convert strings to numbers.
-          dataset.forEach(function(d) {
-            d.fine_sum = +d.fine_sum;
-            d.infraction_code=+d.infraction_code;
-            d.count=+d.count;
-            d.mean_hour=+d.mean_hour;
-          });
-
-        raw_data=dataset;
-
-        update(default_year);
-      });
-
-
-var tile = d3.geo.tile()
-    .size([width, height]);
-
-var projection = d3.geo.mercator()
-    .scale((1 << 20) / 2 / Math.PI)
-    .translate([-width / 2, -height / 2]);
-
-
-//revised: zoom to toronto
-var zoom = d3.behavior.zoom()
-    .scale(projection.scale() * 2 * Math.PI)
-    .scaleExtent([1 << 200, 1 << 25])
-    .translate(projection([-79.38558, 43.7020]).map(function (x) {
-        return -x;
-    }))
-    .on("zoom", zoomed);
-
-
-var container = d3.select("body").append("div")
-    .attr("id", "container")
-    .style("width", width + "px")
-    .style("height", height + "px")
-    .style("top", top_offset + "px")
-    .style("left", left_offset + "px")
-    .call(zoom)
-    .on("mousemove", mousemoved); //for coordinates shown on bottom left
-
-
-var map = container.append("g")
-		.attr("id", "map");
-
-var points = container.append("svg")
-		.attr("id", "points");
-
-var layer = map.append("div")
-    .attr("class", "layer");
-
-var info = map.append("div")
-    .attr("class", "info");
-
-var title = d3.select("body")
-    .append("div")
-    .attr("id","title")
-    .style("position", "absolute")
-    .style("top", -5 + "px")
-    .style("font-family","sans-serif")
-    .style("font-size","18px")
-    .html('<h1>Toronto Parking Tickets From 2008 to 2015</h1>');
-
-var title_width = (document.getElementById("title").clientWidth + 1);
-
-d3.select("#title")
-  .style("left", left_offset+width/2-title_width/2 + "px");
-
-var legend_title = d3.select("body").append("svg")
-	.attr("width", 200)
-	.attr("height", 100)
-	.attr("id","legend_title")
-  .style("position", "absolute")
-  // .style("top", top_offset+"px")
-  .style("top", 10+"px")
-  .style("left",50+"px")
-  .append("text")
-	.attr("dy", ".35em")
-  .attr("x", 70)
-	.attr("y", 9)
-  .style("font-size","18px")
-	.style("text-anchor", "middle")
-	.style("font-weight", "bold")
-	.text("Infraction Type");
-
-var legend = d3.select("body").append("svg")
-	.attr("width", 300)
-  .style("position", "absolute")
-  .style("top", 20+"px")
-  .style("left",10+"px")
-	.attr("height", 700)
-	.attr("class","legend");
-
-// define hte information displayed in the tooltip
-var tip = d3.tip()
-  .attr('class', 'd3-tip')
-  .offset([-10, 0])
-  .html(function(d) {
-    return "<span>" + d.street_address + "</span>" + "<br />" + "<span>" +
-              "Total Revenue: $" + num_format(d.fine_sum) + "</span>" + "<br />" + "<span>" +
-              "Tickets/day: " + Math.round(d.count/365*100)/100 + "</span>" + "<br />" + "<span>" +
-              // "Ticket Cost: $" + d.fine_amt +"<br />" + "</span>" +
-              "Infraction Type: " + d.infraction_code + "</span>";
-    // return "<span style='color:black'>" + d.street_address + "</span>";
-  });
-
-
-points.call(tip);
-zoomed();
-
-
-function update(year) {
-  data=raw_data.filter(function(d) {
-          return d.year == year;});
-
-  //get list of unique infraction_code's for given year
-  infrac_cds=d3.map(data, function(d){return d.infraction_code;}).keys();
-
-  //map the new domain to the color scale
-  color_scale=color_scale.domain(infrac_cds)
-
-  max = d3.max(data, function(d) { return d.fine_sum; });
-  min = d3.min(data, function(d) { return d.fine_sum; });
-
-  //redefine scale based on new data
-  rscale = d3.scale.linear()
-  .domain([min,max])
-  .range([0.0000005,0.00001]); //custom max/zoom.scale & min/zoom.scale values //[0.00000018,0.00000852]
-
-  add_circles(data);
-  build_legend();
-}
-
-function add_circles(dataset) {
-  d3.select("#points").selectAll("circle").data(dataset) //plotted 	locations on map
-  .enter()
-  .append("circle")
-  .attr("class", "parking_spot")
-  .attr("cx", function(d) {return projection([d.lng,d.lat])[0]})
-  .attr("cy", function(d) {return projection([d.lng,d.lat])[1]})
-  .attr("r",1)
-	.style("fill", function(d) {return color_scale(d.infraction_code)})
-  .on('mouseover', tip.show)
-  .on('mouseout', tip.hide);
-
-  // d3.selectAll("circle")
-  //     .transition().duration(2000)
-  //     .attr("r", function(d) {return rscale(d.fine_sum)*zoom.scale()});
-
-  zoomed();
-}
-
-
-//build legend pane
-function build_legend(){
-
-  var node_size=15;
-
-  var legend_node = legend.selectAll(".node")
-  			.attr("class","node")
-  			.data(infrac_cds)
-  			.enter().append("g")
-        .attr("transform", function(d, i) {return "translate(0," + (i+1) * (node_size*1.5) + ")";});
-
-  		legend_node.append("rect")
-  			.attr("class","node")
-  			.attr("width", node_size)
-        .attr("height", node_size)
-  			.style("fill", function(d) {return color_scale(d);});
-
-  		legend_node.append("text")
-  			.attr("class","node")
-  			.attr("x", 20)
-  			.attr("y", node_size/2)
-  			.attr("dy", ".35em")
-  			.text(function(d) {
-          legend_str=d+": "+fine_amts[d]['fine_descp']+" - $"+fine_amts[d]['fine_amt'];
-          return legend_str; });
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+
+    <title>Toronto Parking Tickets</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <!-- <link href="/css/darkly_bootstrap.css" rel="stylesheet"> -->
+
+    <!-- FontAwesome CSS -->
+    <link rel="stylesheet" type="text/css" href="/css/font-awesome-4.6.3/css/font-awesome.min.css" />
+
+    <link rel="stylesheet" href="css/nouislider.min.css" />
+
+    <script src="js/d3.v3.min.js"></script>
+    <script src="js/d3.geo.tile.v0.min.js"></script>
+    <script src="js/d3.tip.js"></script>
+
+    <script src="js/nouislider.min.js"></script>
+    <script src="js/wNumb.js"></script>
+
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB1qohjxj4Qnp1yYYjjCyj9edOzsXHSVmE">
+    </script>
+
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.min.js"
+      integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+      crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.2.3/jquery-confirm.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.2.3/jquery-confirm.min.js"></script>
+
+  </head>
+
+  <style>
+  /* Sticky footer styles
+  -------------------------------------------------- */
+  html {
+    position: relative;
+    min-height: 100%;
   }
-
-function zoomed() {
-
-  var tiles = tile
-      .scale(zoom.scale())
-      .translate(zoom.translate())
-      ();
-
-  projection
-      .scale(zoom.scale() / 2 / Math.PI)
-      .translate(zoom.translate());
-
-  var circles = d3.selectAll("circle")
-        .attr("cx", function(d) {return projection([d.lng,d.lat])[0]})
-				.attr("cy", function(d) {return projection([d.lng,d.lat])[1]})
-        // .transition().duration(2000)
-        .attr("r", function(d) {return rscale(d.fine_sum)*zoom.scale()});
-
-  var image = layer
-      .style(prefix + "transform", matrix3d(tiles.scale, tiles.translate))
-    .selectAll(".tile")
-      .data(tiles, function(d) { return d; });
-
-  image.exit()
-      .remove();
-
-
-//https://api.mapbox.com/styles/v1/mapbox/dark-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiaWFud2hpdGVzdG9uZSIsImEiOiJjajJqcXY0cGowMDIzMzJueHRkbTdwb3lxIn0.UOywpIDBUqX6my3XaHeKsw"
-
-//play with this to format what OSM gives you...
-  image.enter().append("img")
-      .attr("class", "tile")
-      // .attr("src", function(d) { return "http://" + ["a", "b", "c"][Math.random() * 3 | 0] + ".tile.openstreetmap.org/" + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
-      // .attr("src", function(d) { return "https://api.mapbox.com/styles/v1/mapbox/dark-v9/tiles/256/" + d[2] + "/" + d[0] + "/" + d[1] + "?access_token=pk.eyJ1IjoiaWFud2hpdGVzdG9uZSIsImEiOiJjajJqcXY0cGowMDIzMzJueHRkbTdwb3lxIn0.UOywpIDBUqX6my3XaHeKsw"; })
-      .attr("src", function(d) { return "http://" + ["a", "b", "c"][Math.random() * 3 | 0] + ".tile.openstreetmap.se/hydda/full/" + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
-      .style("left", function(d) { return (d[0] << 8) + "px"; })
-      .style("top", function(d) { return (d[1] << 8) + "px"; });
+  body {
+    /* Margin bottom by footer height */
+    margin-bottom: 60px;
+  }
+  .footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    /* Set the fixed height of the footer here */
+    height: 60px;
+    /*background-color: #f5f5f5;*/
+  }
+  /* Map Objects styling
+  -------------------------------------------------- */
+  .container {
+    width: auto;
+  }
+  .container .text-muted {
+    margin: 20px 0;
+  }
+  #map-container {
+    position: relative;
+    overflow: hidden;
+    background: #ddd;
+  }
+  .map {
+    position: relative;
+    overflow: hidden;
+  }
+  #points{
+  	width:100%;
+  	height:100%;
+  	position:relative;
+  	z-index:100;
+  }
+  .layer {
+    position: absolute;
+  }
+  .tile {
+    pointer-events: none;
+    position: absolute;
+    width: 256px;
+    height: 256px;
+  }
+  .parking_spot{
+  	opacity: 0.6;
+  	/*fill: black; fill is now defined based on infraction code*/
+  }
+  .parking_spot:hover{
+  	opacity: 0.4;
+  	fill: #ff8a00;
+  }
+  .info {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+  }
+  .d3-tip {
+    line-height: 1.5;
+    font-weight: bold;
+  	font-family: Helvetica, Arial, sans-serif;
+  	font-size:13px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 3px;
+  	position:relative;
+  	z-index:101;
+  }
+  /* Creates a small triangle extender for the tooltip */
+  .d3-tip:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 20px;
+    width: 100%;
+    line-height: .5;
+    color: rgba(0, 0, 0, 0.8);
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+  }
+  /* Style northward tooltips differently */
+  .d3-tip.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+  }
+  .top-buffer { margin-top:40px; }
+  #amt-slider .noUi-connect {
+  	background: #ffa500;
+  }
+  #freq-slider .noUi-connect {
+    background: #ff6666;
+  }
+  #date-slider .noUi-connect {
+    background: #20b2aa;
+  }
+  /*#amt-slider .noUi-base {
+    background: red;
 }
+  #amt-slider .noUi-background {
+  	background: blue;
+}*/
+  </style>
 
-function mousemoved() {
-  info.text(projection.invert(d3.mouse(this)));
-  info.text(formatLocation(projection.invert(d3.mouse(this)), zoom.scale()));
-}
+  <body>
 
-function matrix3d(scale, translate) {
-  var k = scale / 256, r = scale % 1 ? Number : Math.round;
-  return "matrix3d(" + [k, 0, 0, 0, 0, k, 0, 0, 0, 0, k, 0, r(translate[0] * scale), r(translate[1] * scale), 0, 1 ] + ")";
-}
+    <!-- Begin page content -->
+    <div class="container" style="width:100%">
+    <h1>Toronto Parking Tickets</h1>
 
-function prefixMatch(p) {
-  var i = -1, n = p.length, s = document.body.style;
-  while (++i < n) if (p[i] + "Transform" in s) return "-" + p[i].toLowerCase() + "-";
-  return "";
-}
 
-function formatLocation(p, k) {
-  var format = d3.format("." + Math.floor(Math.log(k) / 2 - 2) + "f");
-  return (p[1] < 0 ? format(-p[1]) + "°S" : format(p[1]) + "°N") + " "
-       + (p[0] < 0 ? format(-p[0]) + "°W" : format(p[0]) + "°E");
-}
+      <div class="row" style="width:100%;">
+          <div class="col-md-12">
+            <div id="date-slider" style="width:90%; margin-left:5%"></div>
+          </div>
+      </div>
 
-</script>
+      <div class="row top-buffer" style="width:100%">
+        <div class="col-md-3">
+          <div class="row">
+            <div class="col-md-6">
+              <button type="button" class="btn" onclick="selectAll();">Select All</button>
+            </div>
+            <div class="col-md-6">
+              <button type="button" class="btn" onclick="deselectAll();">Deselect All</button>
+            </div>
+          </div>
+
+          <div id="legend"></div>
+
+          <div class="row" style="margin-left:0%; margin-top:0%">
+            <div class="col-md-4 col-md-offset-1">
+              <h4>$/ticket </h4>
+            </div>
+            <div class="col-md-4 col-md-offset-1">
+              <h4>Tickets/day </h4>
+            </div>
+          </div>
+
+          <div class="row" style="margin-left:0%; margin-top:5%">
+            <div class="col-md-4 col-md-offset-2">
+              <div id="amt-slider" style="height:150px"></div>
+            </div>
+            <div class="col-md-4 col-md-offset-2">
+              <div id="freq-slider" style="height:150px"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-9">
+          <div id="map-container"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="footer">
+      <div class="container" valign="center">
+        <p class="text-muted" align="center">
+          <a href="https://github.com/ian-whitestone/toronto-parking-tickets" target="_blank"><i class="fa fa-github-alt"></i>  GitHub</a> |
+          <a href="mailto:ianwhitestone@hotmail.com&subject=Toronto Parking Tickets Website"><small><i class="fa fa-envelope"></i></small>  Email Me</a> |
+          <a href="https://github.com/ian-whitestone/toronto-parking-tickets/issues/new" target="_blank"> <i class="fa fa-bug"></i>  Report an Issue</a>
+        </p>
+      </div>
+    </footer>
+
+  </body>
+
+  <!-- main JS that creates the visualization -->
+  <script src="js/toronto-tickets.js"></script>
+
+</html>

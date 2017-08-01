@@ -2,6 +2,7 @@
 *.csv
 *.xlsx'
 notes.txt
+src/*
 
 ## images
 *.jp*
