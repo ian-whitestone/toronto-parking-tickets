@@ -145,12 +145,14 @@ After incorporating all the feedback I received, I came up with the final design
 Several key changes were implemented:
 
 1) Using a Mapbox Map Theme
+
 The final design incorporates a dark grey/black map background, which allows the circles to be easily spotted and differentiated.
 
 2) Bootstrap to the rescue!
-To deal with different screen sizes, I implemented bootstraps wonderful grid system, which automatically resizes the HTML elements across screens.
 
-The legend, which was previously to long for certain screens, is now contained in a scrollable container.
+To deal with different screen sizes, I implemented bootstrap's wonderful grid system, which automatically resizes the HTML elements across screens.
+
+The legend, which was previously too long for certain screens, is now contained in a scrollable container.
 
 3) More opportunities to explore
 
