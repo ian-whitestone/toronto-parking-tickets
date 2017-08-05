@@ -1,5 +1,4 @@
 # toronto-parking-tickets
-# WORK IN PROGRESS
 
 ## Overview
 
