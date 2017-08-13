@@ -114,6 +114,8 @@ Thankfully they put a sign by this one.
 ### Design Overview
 Rather than producing a series of line charts, I wanted to give users the ability to explore the top grossing parking spots in Toronto. In my mind, one of the most important attributes of a parking ticket is location. As a result, I chose to create a map-based visualization with other attributes, such as total fines and infraction type, coded by size and colour respectively.
 
+I chose to encode the parking spot's revenue with the circle's size. Big circles immediately pop out to viewers, which is what the visualization is intended to do. User's can quickly identify the top grossing spots without much effort. This was accomplished using a linear radius scale, where I mapped the square root of the total revenue to the radius value. This ensures that a location with 2x the revenue of another has a circle area that is 2x as well. The minimum and maximum circle sizes were chosen such that the largest circles didn't impede the viewing of other circles, while the smallest circles were still large enough to be identified on the map.
+
 Users should be able to immediately see that the bulk of the top grossing locations are in downtown Toronto, as one might expect. On top of seeing trends by area, users can quickly find the highest grossing spots and ticket types based on the size and colour of each circle.
 
 ### Initial Design
