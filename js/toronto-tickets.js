@@ -424,7 +424,7 @@ function zoomed() {
   image.enter()
       .append('img')
       .attr('class', 'tile')
-      .attr('src', function(d) { return 'https://api.mapbox.com/styles/v1/mapbox/dark-v9/tiles/256/' + d[2] + '/' + d[0] + '/' + d[1] + '?access_token=pk.eyJ1IjoiaWFud2hpdGVzdG9uZSIsImEiOiJjajJqcXY0cGowMDIzMzJueHRkbTdwb3lxIn0.UOywpIDBUqX6my3XaHeKsw'; })
+      .attr('src', function(d) { return 'https://api.mapbox.com/styles/v1/mapbox/dark-v9/tiles/256/' + d[2] + '/' + d[0] + '/' + d[1] + '?access_token=pk.eyJ1IjoiaWFud2hpdGVzdG9uZSIsImEiOiJjazlxNmJpM3UwZnE4M2dydHR6bXJiaDcxIn0.xwUBsn91SYMPrNieaXU8Ag'; })
       .style('left', function(d) { return (d[0] << 8) + 'px'; })
       .style('top', function(d) { return (d[1] << 8) + 'px'; });
 }
